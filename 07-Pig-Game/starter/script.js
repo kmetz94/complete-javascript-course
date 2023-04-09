@@ -13,18 +13,22 @@ const playerTwoCurrent = document.querySelector("#current--1");
 const diceImage = document.querySelector(".dice");
 
 // Variables for initialization
-let firstPlayerTurn, score;
+let firstPlayerTurn, score, playing;
 
 // Functions
 function initializeGame() {
   firstPlayerTurn = true;
+  playing = true;
   score = 0;
   playerOneCurrent.textContent = score;
   playerTwoCurrent.textContent = score;
   playerOneScore.textContent = score;
   playerTwoScore.textContent = score;
+  diceImage.classList.remove("hidden");
   playerOne.classList.add("player--active");
   playerTwo.classList.remove("player--active");
+  playerOne.classList.remove("player--winner");
+  playerTwo.classList.remove("player--winner");
 }
 
 function switchPlayer() {
@@ -37,18 +41,28 @@ function switchPlayer() {
 }
 
 function holdScore() {
-  if (firstPlayerTurn) {
-    playerOneScore.textContent = Number(playerOneScore.textContent) + score;
-  } else if (!firstPlayerTurn) {
-    playerTwoScore.textContent = Number(playerTwoScore.textContent) + score;
+  if (playing) {
+    if (firstPlayerTurn) {
+      playerOneScore.textContent = Number(playerOneScore.textContent) + score;
+    } else if (!firstPlayerTurn) {
+      playerTwoScore.textContent = Number(playerTwoScore.textContent) + score;
+    }
+    switchPlayer();
+    checkWinner();
   }
-  switchPlayer();
-  checkWinner();
 }
 
 function checkWinner() {
-  if (playerOneScore.textContent >= 100 || playerTwoScore.textContent >= 100) {
-    initializeGame();
+  if (playerOneScore.textContent >= 100) {
+    playerOne.classList.add("player--winner");
+    playing = false;
+    diceImage.classList.add("hidden");
+    playerOneScore.textContent = "WINNER";
+  } else if (playerTwoScore.textContent >= 100) {
+    playerTwo.classList.add("player--winner");
+    playing = false;
+    diceImage.classList.add("hidden");
+    playerTwoScore.textContent = "WINNER";
   }
 }
 
@@ -57,16 +71,18 @@ initializeGame();
 
 // Roll dice
 rollDiceBtn.addEventListener("click", function () {
-  let roll = Math.trunc(Math.random() * 6 + 1);
-  diceImage.src = `dice-${roll}.png`;
-  score += roll;
+  if (playing) {
+    let roll = Math.trunc(Math.random() * 6 + 1);
+    diceImage.src = `dice-${roll}.png`;
+    score += roll;
 
-  if (firstPlayerTurn && roll !== 1) {
-    playerOneCurrent.textContent = score;
-  } else if (!firstPlayerTurn && roll !== 1) {
-    playerTwoCurrent.textContent = score;
-  } else {
-    switchPlayer();
+    if (firstPlayerTurn && roll !== 1) {
+      playerOneCurrent.textContent = score;
+    } else if (!firstPlayerTurn && roll !== 1) {
+      playerTwoCurrent.textContent = score;
+    } else {
+      switchPlayer();
+    }
   }
 });
 
