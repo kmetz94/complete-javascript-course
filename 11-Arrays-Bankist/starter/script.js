@@ -61,6 +61,19 @@ const inputLoanAmount = document.querySelector('.form__input--loan-amount');
 const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
+const createUsernames = function(accs) {
+  accs.forEach(function(acc) {
+    acc.username = acc.owner
+    .toLowerCase()
+    .split(' ')
+    .map(function(word) {
+    return word[0]
+    }).join('')
+  })
+}
+
+createUsernames(accounts)
+
 const displayMovements = function(movements) {
   containerMovements.innerHTML = '';
 
@@ -77,8 +90,72 @@ const displayMovements = function(movements) {
     containerMovements.insertAdjacentHTML('afterbegin', html);
   });
 };
-displayMovements(account1.movements)
 
+const calcDisplayBalance = function(movements) {
+  const balance = movements.reduce(function(sum, mov){
+    return sum + mov
+  }, 0)
+  labelBalance.textContent = `${balance} EUR`
+}
+
+const calcDisplaySummary = function(acc) {
+  const incomes = acc.movements
+  .filter(function(mov) {
+    return mov > 0
+  })
+  .reduce(function(total, mov) {
+    return total + mov
+  }, 0)
+
+  const outs = acc.movements
+  .filter(function(mov) {
+    return mov < 0
+  })
+  .reduce(function(total, mov) {
+    return total + mov
+  }, 0)
+
+  const interest = acc.movements
+  .filter(function(mov) {
+    return mov > 0
+  })
+  .map(function(mov){
+    return mov * acc.interestRate / 100
+  })
+  .filter(function(int) {
+    return int >= 1
+  })
+  .reduce(function(total, mov) {
+    return total + mov
+  }, 0)
+
+  labelSumIn.textContent = `${incomes} EUR`
+  labelSumOut.textContent = `${Math.abs(outs)} EUR`
+  labelSumInterest.textContent = `${interest} EUR`
+}
+
+// Event Handler
+let currentAccount;
+
+btnLogin.addEventListener('click', function(e) {
+  e.preventDefault()
+  
+  currentAccount = accounts.find(function(acc) {
+    return acc.username === inputLoginUsername.value 
+  })
+
+  if(currentAccount?.pin === Number(inputLoginPin.value)) {
+    labelWelcome.textContent = `Welcome back, ${currentAccount.owner.split(' ')[0]}`
+    containerApp.style.opacity = 100
+  }
+  
+  inputLoginUsername.value = inputLoginPin.value = ''
+  inputLoginPin.blur()
+
+  displayMovements(currentAccount.movements)
+  calcDisplayBalance(currentAccount.movements)
+  calcDisplaySummary(currentAccount)
+})
 
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
@@ -91,6 +168,26 @@ const currencies = new Map([
 ]);
 
 const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
+
+const eurToUsd = 1.1;
+
+const mvoementsUsd = movements.map(function(mov) {
+  return mov * eurToUsd
+})
+
+const deposits = movements.filter(function(mov) {
+  mov > 0
+})
+
+const withdrawals = movements.filter(function(mov) {
+  mov < 0
+})
+
+const balance = movements.reduce(function(total, mov) {
+  return total + mov
+}, 0)
+
+
 
 /////////////////////////////////////////////////
 // Challenge 1
@@ -109,3 +206,43 @@ const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 // };
 
 // checkDogs([1, 2, 3, 4, 5], [6, 7, 8, 2, 1]);
+
+// Challenge 2
+
+// const calcAverageHumanAge = function(ages) {
+//   const humanAges = ages.map(function(age) {
+//     if (age <= 2) return 2 * age
+//     else return 16 + age * 4
+//   })
+//   console.log(humanAges)
+//   const adults = humanAges.filter(function(age) {
+//     return age >= 18
+//   })
+//   console.log(adults)
+//   const average = adults.reduce(function(total, age){
+//     return total + age
+//   }, 0) / adults.length
+
+//   return average
+// }
+
+// console.log(calcAverageHumanAge([5, 2, 4, 1, 15, 8, 3]))
+
+// // Challenge 3
+
+// const calcAverageHumanAge = function(ages) {
+//     const humanAges = ages.map(function(age) {
+//       if (age <= 2) return 2 * age
+//       else return 16 + age * 4
+//     })
+//     .filter(function(age) {
+//       return age >= 18
+//     })
+//     .reduce(function(total, age, i, arr){
+//       return total + age / arr.length
+//     }, 0)
+  
+//     return humanAges
+//   }
+
+//   console.log(calcAverageHumanAge([5, 2, 4, 1, 15, 8, 3]))
